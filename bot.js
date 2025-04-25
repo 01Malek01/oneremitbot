@@ -1,6 +1,11 @@
 const TelegramBot = require('node-telegram-bot-api');
 const axios = require('axios');
-require('dotenv').config(); // For environment variables
+const express = require('express'); // Add Express
+require('dotenv').config();
+
+// Create Express server - required for Render deployment
+const app = express();
+const PORT = process.env.PORT || 3000;
 
 // Telegram Bot Token (from environment variable)
 const TOKEN = process.env.TELEGRAM_BOT_TOKEN || '8038284856:AAEC5qbwE8XEElrWHBe9Vyk2_rf610Mo0_M';
@@ -141,4 +146,18 @@ bot.on('polling_error', (error) => {
   console.error('Polling error:', error.message);
 });
 
-console.log('Oneremit FX Bot is running...');
+// Add routes for the web server
+app.get('/', (req, res) => {
+  res.send('Oneremit FX Bot is running!');
+});
+
+// Health check endpoint (useful for monitoring)
+app.get('/health', (req, res) => {
+  res.status(200).send({ status: 'ok', timestamp: new Date() });
+});
+
+// Start the Express server
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
+  console.log('Oneremit FX Bot is running...');
+});
