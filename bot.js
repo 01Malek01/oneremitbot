@@ -7,7 +7,7 @@ const bot = new TelegramBot(TOKEN, { polling: true });
 
 // Supabase FX Rate API + Authorization Header
 const RATES_API = 'https://iiuiulmvckujakswquvx.supabase.co/functions/v1/get-rates-api';
-const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlpdWl1bG12Y2t1amFrc3dxdXZ4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDQwNzExNjUsImV4cCI6MjA1OTY0NzE2NX0.jhsdvflhewouhoelhgelfihgvewoifhvgoeiuyrfgeo';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlpdWl1bG12Y2t1amFrc3dxdXZ4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDQwNzExNjUsImV4cCI6MjA1OTY0NzE2NX0.DKmQ_Tjni93VDmukb56yqH8u7IPpXH805_HlpQNMoDc';
 
 bot.onText(/\/start/, (msg) => {
   const chatId = msg.chat.id;
