@@ -38,7 +38,7 @@ bot.onText(/\/start/, (msg) => {
   const chatId = msg.chat.id;
   const firstName = msg.from.first_name || 'there';
   
-  const welcomeMessage = 
+  const welcomeMessage = `
 👋 Hello ${firstName}! Welcome to Oneremit FX Bot!
 
 *Available Commands:*
@@ -46,7 +46,7 @@ bot.onText(/\/start/, (msg) => {
 • /rates - Same as refresh
 
 Need help? Just type /help
-;
+`;
   
   bot.sendMessage(chatId, welcomeMessage, {
     parse_mode: 'Markdown'
@@ -57,7 +57,7 @@ Need help? Just type /help
 bot.onText(/\/help/, (msg) => {
   const chatId = msg.chat.id;
   
-  const helpMessage = 
+  const helpMessage = `
 *Oneremit FX Bot Help*
 
 *Available Commands:*
@@ -66,7 +66,7 @@ bot.onText(/\/help/, (msg) => {
 • /rates - Same as refresh
 
 This bot provides real-time FX rates from Oneremit.
-;
+`;
   
   bot.sendMessage(chatId, helpMessage, {
     parse_mode: 'Markdown'
@@ -82,13 +82,13 @@ bot.onText(/\/(refresh|rates)/, async (msg) => {
   
   try {
     // Use the simple format for cleaner data
-    const url = ${RATES_API}?format=simple;
+    const url = `${RATES_API}?format=simple`;
     
     // FIXED: Proper Supabase authorization header format
     const res = await axios.get(url, {
       headers: {
         'apikey': SUPABASE_KEY,
-        'Authorization': Bearer ${SUPABASE_KEY}
+        'Authorization': `Bearer ${SUPABASE_KEY}`
       }
     });
     
@@ -127,7 +127,7 @@ bot.onText(/\/(refresh|rates)/, async (msg) => {
     
     const updateTime = new Date(rateCache.timestamp).toLocaleTimeString();
     
-    const message = 
+    const message = `
 💱 *Live FX Rates* (Oneremit)
 🕒 Updated: ${updateTime}
 
@@ -135,7 +135,7 @@ bot.onText(/\/(refresh|rates)/, async (msg) => {
 🇳🇬 → 🇬🇧 GBP: ₦${formattedGBP}
 🇳🇬 → 🇪🇺 EUR: ₦${formattedEUR}
 🇳🇬 → 🇨🇦 CAD: ₦${formattedCAD}
-.trim();
+`.trim();
 
     bot.sendMessage(chatId, message, { 
       parse_mode: 'Markdown',
@@ -185,10 +185,10 @@ bot.on('polling_error', (error) => {
 // Debug endpoint to test API connection
 app.get('/debug/test-api', async (req, res) => {
   try {
-    const response = await axios.get(${RATES_API}?format=simple, {
+    const response = await axios.get(`${RATES_API}?format=simple`, {
       headers: {
         'apikey': SUPABASE_KEY,
-        'Authorization': Bearer ${SUPABASE_KEY}
+        'Authorization': `Bearer ${SUPABASE_KEY}`
       }
     });
     
@@ -221,6 +221,6 @@ app.get('/health', (req, res) => {
 
 // Start the Express server
 app.listen(PORT, () => {
-  console.log(Server running on port ${PORT});
+  console.log(`Server running on port ${PORT}`);
   console.log('Oneremit FX Bot is running...');
 });
