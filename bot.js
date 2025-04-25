@@ -1,10 +1,13 @@
-require('dotenv').config();
 const TelegramBot = require('node-telegram-bot-api');
 const axios = require('axios');
 
-const TOKEN = process.env.BOT_TOKEN;
+// Telegram Bot Token (secure this in production)
+const TOKEN = '8038284856:AAEC5qbwE8XEElrWHBe9Vyk2_rf610Mo0_M';
 const bot = new TelegramBot(TOKEN, { polling: true });
+
+// Supabase FX Rate API + Authorization Header
 const RATES_API = 'https://iiuiulmvckujakswquvx.supabase.co/functions/v1/get-rates-api';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlpdWl1bG12Y2t1amFrc3dxdXZ4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDQwNzExNjUsImV4cCI6MjA1OTY0NzE2NX0.jhsdvflhewouhoelhgelfihgvewoifhvgoeiuyrfgeo';
 
 bot.onText(/\/start/, (msg) => {
   const chatId = msg.chat.id;
@@ -17,7 +20,12 @@ bot.onText(/\/refresh/, async (msg) => {
   const chatId = msg.chat.id;
 
   try {
-    const res = await axios.get(RATES_API);
+    const res = await axios.get(RATES_API, {
+      headers: {
+        Authorization: `Bearer ${SUPABASE_KEY}`
+      }
+    });
+
     const data = res.data;
 
     const message = `
