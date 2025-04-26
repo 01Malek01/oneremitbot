@@ -11,23 +11,23 @@ const PORT = process.env.PORT || 3000;
 const TOKEN = process.env.TELEGRAM_BOT_TOKEN || '8038284856:AAEC5qbwE8XEElrWHBe9Vyk2_rf610Mo0_M';
 const bot = new TelegramBot(TOKEN, { polling: true });
 
-// Supabase FX Rate API + Authorization Header
-const RATES_API = process.env.RATES_API || 'https://iiuiulmvckujakswquvx.supabase.co/functions/v1/get-rates-api';
+// Supabase Cost Prices API + Authorization Header
+const COST_PRICES_API = process.env.COST_PRICES_API || 'https://iiuiulmvckujakswquvx.supabase.co/functions/v1/get-cost-prices';
 const SUPABASE_KEY = process.env.SUPABASE_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlpdWl1bG12Y2t1amFrc3dxdXZ4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDQwNzExNjUsImV4cCI6MjA1OTY0NzE2NX0.DKmQ_Tjni93VDmukb56yqH8u7IPpXH805_HlpQNMoDc';
 
-// Rate cache to reduce API calls
-let rateCache = {
-  rates: null,
+// Price cache to reduce API calls
+let priceCache = {
+  prices: null,
   timestamp: null
 };
 
-// Format the rates with commas for better readability
-function formatRate(rate) {
-  if (rate === null || rate === undefined || isNaN(parseFloat(rate)) || !isFinite(rate)) {
+// Format the prices with commas for better readability
+function formatPrice(price) {
+  if (price === null || price === undefined || isNaN(parseFloat(price)) || !isFinite(price)) {
     return "Unavailable";
   }
   
-  return parseFloat(rate).toLocaleString('en-US', {
+  return parseFloat(price).toLocaleString('en-US', {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2
   });
@@ -42,8 +42,8 @@ bot.onText(/\/start/, (msg) => {
 👋 Hello ${firstName}! Welcome to Oneremit FX Bot!
 
 *Available Commands:*
-• /refresh - Get the latest FX rates
-• /rates - Same as refresh
+• /refresh - Get the latest cost prices
+• /prices - Same as refresh
 
 Need help? Just type /help
 `;
@@ -62,10 +62,10 @@ bot.onText(/\/help/, (msg) => {
 
 *Available Commands:*
 • /start - Start the bot
-• /refresh - Get the latest FX rates
-• /rates - Same as refresh
+• /refresh - Get the latest cost prices
+• /prices - Same as refresh
 
-This bot provides real-time FX rates from Oneremit.
+This bot provides real-time FX cost prices from Oneremit.
 `;
   
   bot.sendMessage(chatId, helpMessage, {
@@ -73,8 +73,8 @@ This bot provides real-time FX rates from Oneremit.
   });
 });
 
-// Refresh & Rates command handler
-bot.onText(/\/(refresh|rates)/, async (msg) => {
+// Refresh & Prices command handler
+bot.onText(/\/(refresh|prices)/, async (msg) => {
   const chatId = msg.chat.id;
   
   // Show "typing..." indicator
@@ -82,9 +82,8 @@ bot.onText(/\/(refresh|rates)/, async (msg) => {
   
   try {
     // Use the simple format for cleaner data
-    const url = `${RATES_API}?format=simple`;
+    const url = `${COST_PRICES_API}?format=simple`;
     
-    // FIXED: Proper Supabase authorization header format
     const res = await axios.get(url, {
       headers: {
         'apikey': SUPABASE_KEY,
@@ -97,38 +96,38 @@ bot.onText(/\/(refresh|rates)/, async (msg) => {
     const data = res.data;
     
     // Update cache
-    rateCache.rates = data;
-    rateCache.timestamp = Date.now();
+    priceCache.prices = data;
+    priceCache.timestamp = Date.now();
     
-    // Extract rates from response - handle different possible API structures
-    let usdRate, gbpRate, eurRate, cadRate;
+    // Extract prices from response - handle different possible API structures
+    let usdPrice, gbpPrice, eurPrice, cadPrice;
     
     // For simple format (direct key-value)
     if (typeof data === 'object' && data !== null) {
-      usdRate = data.USD || data.usd;
-      gbpRate = data.GBP || data.gbp;
-      eurRate = data.EUR || data.eur;
-      cadRate = data.CAD || data.cad;
+      usdPrice = data.USD || data.usd;
+      gbpPrice = data.GBP || data.gbp;
+      eurPrice = data.EUR || data.eur;
+      cadPrice = data.CAD || data.cad;
     }
     
-    // For more complex format (rates might be nested)
-    if (!usdRate && data.rates) {
-      usdRate = data.rates.USD || data.rates.usd;
-      gbpRate = data.rates.GBP || data.rates.gbp;
-      eurRate = data.rates.EUR || data.rates.eur;
-      cadRate = data.rates.CAD || data.rates.cad;
+    // For more complex format (prices might be nested)
+    if (!usdPrice && data.prices) {
+      usdPrice = data.prices.USD || data.prices.usd;
+      gbpPrice = data.prices.GBP || data.prices.gbp;
+      eurPrice = data.prices.EUR || data.prices.eur;
+      cadPrice = data.prices.CAD || data.prices.cad;
     }
     
     // Format with fallbacks
-    const formattedUSD = formatRate(usdRate);
-    const formattedGBP = formatRate(gbpRate);
-    const formattedEUR = formatRate(eurRate);
-    const formattedCAD = formatRate(cadRate);
+    const formattedUSD = formatPrice(usdPrice);
+    const formattedGBP = formatPrice(gbpPrice);
+    const formattedEUR = formatPrice(eurPrice);
+    const formattedCAD = formatPrice(cadPrice);
     
-    const updateTime = new Date(rateCache.timestamp).toLocaleTimeString();
+    const updateTime = new Date(priceCache.timestamp).toLocaleTimeString();
     
     const message = `
-💱 *Live FX Rates* (Oneremit)
+💰 *Cost Prices* (Oneremit)
 🕒 Updated: ${updateTime}
 
 🇳🇬 → 🇺🇸 USD: ₦${formattedUSD}
@@ -141,18 +140,18 @@ bot.onText(/\/(refresh|rates)/, async (msg) => {
       parse_mode: 'Markdown',
       reply_markup: {
         inline_keyboard: [
-          [{ text: '🔄 Refresh Rates', callback_data: 'refresh_rates' }]
+          [{ text: '🔄 Refresh Prices', callback_data: 'refresh_prices' }]
         ]
       }
     });
   } catch (error) {
-    console.error('Rate fetch error:', error.message);
+    console.error('Price fetch error:', error.message);
     if (error.response) {
       console.error('Error response status:', error.response.status);
       console.error('Error response data:', JSON.stringify(error.response.data));
     }
     
-    bot.sendMessage(chatId, '⚠️ Failed to fetch rates. Please try again later.');
+    bot.sendMessage(chatId, '⚠️ Failed to fetch cost prices. Please try again later.');
   }
 });
 
@@ -161,9 +160,9 @@ bot.on('callback_query', async (callbackQuery) => {
   const chatId = callbackQuery.message.chat.id;
   const data = callbackQuery.data;
   
-  if (data === 'refresh_rates') {
+  if (data === 'refresh_prices') {
     // Clear cache to force refresh
-    rateCache.timestamp = null;
+    priceCache.timestamp = null;
     
     // Trigger the refresh command
     bot.emit('text', {
@@ -185,7 +184,7 @@ bot.on('polling_error', (error) => {
 // Debug endpoint to test API connection
 app.get('/debug/test-api', async (req, res) => {
   try {
-    const response = await axios.get(`${RATES_API}?format=simple`, {
+    const response = await axios.get(`${COST_PRICES_API}?format=simple`, {
       headers: {
         'apikey': SUPABASE_KEY,
         'Authorization': `Bearer ${SUPABASE_KEY}`
