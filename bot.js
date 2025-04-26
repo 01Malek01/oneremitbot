@@ -18,7 +18,8 @@ const SUPABASE_KEY = process.env.SUPABASE_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6Ik
 // Price cache to reduce API calls
 let priceCache = {
   prices: null,
-  timestamp: null
+  timestamp: null,
+  cacheLifetime: 5 * 60 * 1000 // 5 minutes in milliseconds
 };
 
 // Format the cost prices with commas for better readability
@@ -31,6 +32,37 @@ function formatPrice(price) {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2
   });
+}
+
+// Check if cache is valid
+function isCacheValid() {
+  return priceCache.timestamp && 
+         priceCache.prices && 
+         (Date.now() - priceCache.timestamp < priceCache.cacheLifetime);
+}
+
+// Fetch cost prices from API
+async function fetchCostPrices() {
+  // Check if we can use cached data
+  if (isCacheValid()) {
+    console.log('Using cached cost prices');
+    return priceCache.prices;
+  }
+  
+  console.log('Fetching fresh cost prices from API');
+  const res = await axios.get(COST_PRICES_API, {
+    headers: {
+      'apikey': SUPABASE_KEY,
+      'Authorization': `Bearer ${SUPABASE_KEY}`
+    }
+  });
+  
+  // Update cache
+  priceCache.prices = res.data;
+  priceCache.timestamp = Date.now();
+  
+  console.log('New cost prices fetched:', JSON.stringify(priceCache.prices, null, 2));
+  return priceCache.prices;
 }
 
 // Start command handler
@@ -81,23 +113,15 @@ bot.onText(/\/(refresh|prices)/, async (msg) => {
   bot.sendChatAction(chatId, 'typing');
   
   try {
+    // Force refresh if command is /refresh
+    if (msg.text === '/refresh') {
+      priceCache.timestamp = null;
+    }
+    
     // Get the cost prices from the edge function
-    const res = await axios.get(COST_PRICES_API, {
-      headers: {
-        'apikey': SUPABASE_KEY,
-        'Authorization': `Bearer ${SUPABASE_KEY}`
-      }
-    });
+    const data = await fetchCostPrices();
     
-    console.log('API Response:', JSON.stringify(res.data, null, 2));
-    
-    const data = res.data;
-    
-    // Update cache
-    priceCache.prices = data;
-    priceCache.timestamp = Date.now();
-    
-    // Format prices
+    // Format prices with fallbacks
     const formattedUSD = formatPrice(data.USD);
     const formattedGBP = formatPrice(data.GBP);
     const formattedEUR = formatPrice(data.EUR);
@@ -163,17 +187,19 @@ bot.on('polling_error', (error) => {
 // Debug endpoint to test API connection
 app.get('/debug/test-api', async (req, res) => {
   try {
-    const response = await axios.get(COST_PRICES_API, {
-      headers: {
-        'apikey': SUPABASE_KEY,
-        'Authorization': `Bearer ${SUPABASE_KEY}`
-      }
-    });
+    // Force refresh for debugging
+    priceCache.timestamp = null;
+    
+    const data = await fetchCostPrices();
     
     res.json({
       success: true,
-      data: response.data,
-      status: response.status
+      data: data,
+      cacheInfo: {
+        timestamp: priceCache.timestamp,
+        age: Date.now() - priceCache.timestamp,
+        isValid: isCacheValid()
+      }
     });
   } catch (error) {
     res.status(500).json({
@@ -194,7 +220,15 @@ app.get('/', (req, res) => {
 
 // Health check endpoint (useful for monitoring)
 app.get('/health', (req, res) => {
-  res.status(200).send({ status: 'ok', timestamp: new Date() });
+  res.status(200).send({ 
+    status: 'ok', 
+    timestamp: new Date(),
+    cacheStatus: {
+      exists: !!priceCache.prices,
+      lastUpdated: priceCache.timestamp ? new Date(priceCache.timestamp).toISOString() : null,
+      isValid: isCacheValid()
+    }
+  });
 });
 
 // Start the Express server
