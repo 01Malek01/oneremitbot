@@ -21,7 +21,7 @@ let priceCache = {
   timestamp: null
 };
 
-// Format the prices with commas for better readability
+// Format the cost prices with commas for better readability
 function formatPrice(price) {
   if (price === null || price === undefined || isNaN(parseFloat(price)) || !isFinite(price)) {
     return "Unavailable";
@@ -39,11 +39,11 @@ bot.onText(/\/start/, (msg) => {
   const firstName = msg.from.first_name || 'there';
   
   const welcomeMessage = `
-👋 Hello ${firstName}! Welcome to Oneremit FX Bot!
+👋 Hello ${firstName}! Welcome to Oneremit FX Cost Price Bot!
 
 *Available Commands:*
-• /refresh - Get the latest cost prices
-• /prices - Same as refresh
+- /refresh - Get the latest FX cost prices
+- /prices - Same as refresh
 
 Need help? Just type /help
 `;
@@ -58,12 +58,12 @@ bot.onText(/\/help/, (msg) => {
   const chatId = msg.chat.id;
   
   const helpMessage = `
-*Oneremit FX Bot Help*
+*Oneremit FX Cost Price Bot Help*
 
 *Available Commands:*
-• /start - Start the bot
-• /refresh - Get the latest cost prices
-• /prices - Same as refresh
+- /start - Start the bot
+- /refresh - Get the latest FX cost prices
+- /prices - Same as refresh
 
 This bot provides real-time FX cost prices from Oneremit.
 `;
@@ -81,10 +81,8 @@ bot.onText(/\/(refresh|prices)/, async (msg) => {
   bot.sendChatAction(chatId, 'typing');
   
   try {
-    // Use the simple format for cleaner data
-    const url = `${COST_PRICES_API}?format=simple`;
-    
-    const res = await axios.get(url, {
+    // Get the cost prices from the edge function
+    const res = await axios.get(COST_PRICES_API, {
       headers: {
         'apikey': SUPABASE_KEY,
         'Authorization': `Bearer ${SUPABASE_KEY}`
@@ -99,35 +97,16 @@ bot.onText(/\/(refresh|prices)/, async (msg) => {
     priceCache.prices = data;
     priceCache.timestamp = Date.now();
     
-    // Extract prices from response - handle different possible API structures
-    let usdPrice, gbpPrice, eurPrice, cadPrice;
-    
-    // For simple format (direct key-value)
-    if (typeof data === 'object' && data !== null) {
-      usdPrice = data.USD || data.usd;
-      gbpPrice = data.GBP || data.gbp;
-      eurPrice = data.EUR || data.eur;
-      cadPrice = data.CAD || data.cad;
-    }
-    
-    // For more complex format (prices might be nested)
-    if (!usdPrice && data.prices) {
-      usdPrice = data.prices.USD || data.prices.usd;
-      gbpPrice = data.prices.GBP || data.prices.gbp;
-      eurPrice = data.prices.EUR || data.prices.eur;
-      cadPrice = data.prices.CAD || data.prices.cad;
-    }
-    
-    // Format with fallbacks
-    const formattedUSD = formatPrice(usdPrice);
-    const formattedGBP = formatPrice(gbpPrice);
-    const formattedEUR = formatPrice(eurPrice);
-    const formattedCAD = formatPrice(cadPrice);
+    // Format prices
+    const formattedUSD = formatPrice(data.USD);
+    const formattedGBP = formatPrice(data.GBP);
+    const formattedEUR = formatPrice(data.EUR);
+    const formattedCAD = formatPrice(data.CAD);
     
     const updateTime = new Date(priceCache.timestamp).toLocaleTimeString();
     
     const message = `
-💰 *Cost Prices* (Oneremit)
+💰 *FX Cost Prices* (Oneremit)
 🕒 Updated: ${updateTime}
 
 🇳🇬 → 🇺🇸 USD: ₦${formattedUSD}
@@ -140,12 +119,12 @@ bot.onText(/\/(refresh|prices)/, async (msg) => {
       parse_mode: 'Markdown',
       reply_markup: {
         inline_keyboard: [
-          [{ text: '🔄 Refresh Prices', callback_data: 'refresh_prices' }]
+          [{ text: '🔄 Refresh Cost Prices', callback_data: 'refresh_prices' }]
         ]
       }
     });
   } catch (error) {
-    console.error('Price fetch error:', error.message);
+    console.error('Cost price fetch error:', error.message);
     if (error.response) {
       console.error('Error response status:', error.response.status);
       console.error('Error response data:', JSON.stringify(error.response.data));
@@ -184,7 +163,7 @@ bot.on('polling_error', (error) => {
 // Debug endpoint to test API connection
 app.get('/debug/test-api', async (req, res) => {
   try {
-    const response = await axios.get(`${COST_PRICES_API}?format=simple`, {
+    const response = await axios.get(COST_PRICES_API, {
       headers: {
         'apikey': SUPABASE_KEY,
         'Authorization': `Bearer ${SUPABASE_KEY}`
@@ -210,7 +189,7 @@ app.get('/debug/test-api', async (req, res) => {
 
 // Add routes for the web server
 app.get('/', (req, res) => {
-  res.send('Oneremit FX Bot is running!');
+  res.send('Oneremit FX Cost Price Bot is running!');
 });
 
 // Health check endpoint (useful for monitoring)
@@ -221,5 +200,5 @@ app.get('/health', (req, res) => {
 // Start the Express server
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
-  console.log('Oneremit FX Bot is running...');
+  console.log('Oneremit FX Cost Price Bot is running...');
 });
