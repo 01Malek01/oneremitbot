@@ -1,0 +1,77 @@
+# General OS generated files
+.DS_Store
+.Thumbs.db
+
+# Node.js and npm
+node_modules
+package-lock.json
+npm-debug.log*
+yarn-error.log*
+
+# Yarn
+yarn.lock
+
+# Parcel
+.parcel-cache
+
+# Next.js
+.next
+out
+
+# Gatsby
+.cache
+public
+
+# Vue.js
+dist
+.ssr-cache
+
+# Python
+__pycache__/
+*.pyc
+*.pyd
+.pytest_cache/
+.coverage
+*.egg-info/
+venv/
+
+# Java
+*.class
+bin/
+lib/
+
+# Go
+bin/
+
+# Editors and IDEs
+.idea
+.vscode/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+
+# Logs and temp files
+*.log
+tmp/
+temp/
+
+# Environment variables
+.env
+.env.local
+.env.development
+.env.development.local
+.env.production
+.env.production.local
+
+# Build output
+build/
+
+# Deployment related
+now.json
+.nowignore
+
+# If you have compiled assets
+# assets/compiled/
+
+# Add any other project-specific files or folders you want to ignore here
