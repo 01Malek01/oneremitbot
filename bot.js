@@ -90,10 +90,10 @@ async function sendPrices(chatId) {
 💰 *FX Cost Prices in NGN*
 🕒 Updated: ${updateTime}
 
-🇺🇸 USD: ${formattedUSD}
-🇬🇧 GBP: ${formattedGBP}
-🇪🇺 EUR: ${formattedEUR}
-🇨🇦 CAD: ${formattedCAD}
+🇺🇸 USD: 🇳🇬 ${formattedUSD}
+🇬🇧 GBP: 🇳🇬 ${formattedGBP}
+🇪🇺 EUR: 🇳🇬 ${formattedEUR}
+🇨🇦 CAD: 🇳🇬 ${formattedCAD}
 `.trim();
 
     bot.sendMessage(chatId, message, {
