@@ -1,8 +1,7 @@
 const TelegramBot = require("node-telegram-bot-api");
 const express = require("express");
 require("dotenv").config();
-const getCostPricesForNGN =
-  require("./getCostPrices.js").fetchCurrencyPricesInNgn;
+const getCostPricesForNGN = require("./getFxRates").fetchCostPricesFromSupabase;
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -59,11 +58,12 @@ async function fetchCostPrices() {
 
   if (!res.success) throw new Error(res.error || "Unknown API error");
 
+  // Use keys exactly as returned from Supabase function
   const prices = {
-    USD: res.prices.USD_NGN,
-    GBP: res.prices.GBP_NGN,
-    EUR: res.prices.EUR_NGN,
-    CAD: res.prices.CAD_NGN,
+    USD: res.prices.USD,
+    GBP: res.prices.GBP,
+    EUR: res.prices.EUR,
+    CAD: res.prices.CAD,
   };
 
   priceCache.prices = prices;

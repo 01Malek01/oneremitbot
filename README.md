@@ -20,4 +20,4 @@ Responds to /start and /refresh with live FX rates using Supabase API.
 • Created a separate getCostPrices file where implemented fetchCurrencyPricesInNgn function.
 • fetchCurrencyPricesInNgn function uses a free API which is from open.er-api.com to fetch NGN price against other currencies.
 • Created a separate refresh function and called it whenever /refresh command is called.
-s
+
